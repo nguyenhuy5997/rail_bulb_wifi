@@ -11,6 +11,7 @@
 #include "../common.h"
 #include "../common.h"
 #include "../Mqtt/mqtt.h"
+#include "../led_control/led.c"
 
 static const char *TAG = "MQTT";
 
@@ -29,7 +30,7 @@ extern char fwVersion[50];
 extern char wifi_ip[30];
 extern uint32_t uptime;
 extern char svalue[200];
-
+extern light_control rail_bulb_control;
 static void mqtt_event_handler(void *handler_args, esp_event_base_t base, int32_t event_id, void *event_data)
 {
 	ESP_LOGD(TAG, "Event dispatched from event loop base=%s, event_id=%d", base, event_id);
@@ -74,23 +75,42 @@ static void mqtt_event_handler(void *handler_args, esp_event_base_t base, int32_
 	}
 }
 
-void mqtt_handle(void *arg) {
-	cmd command_set;
-	char item[250];
-	while(1) {
-		if (xQueueReceive(mqtt_payload, &item, portMAX_DELAY) == pdPASS){
-			ESP_LOGI(TAG, "PAYLOAD: %s", item);
-			memset(&command_set, 0, sizeof(command_set));
-			JSON_analyze_SUB_MQTT(item, &command_set);
-			ESP_LOGI(TAG, "action: %s\n", (char*)command_set.action);
-			vTaskDelay(10/portTICK_RATE_MS);
-		}
-	}
-}
+//void mqtt_handle(void *arg) {
+//	cmd command_set;
+//	char item[250];
+//	while(1) {
+//		if (xQueueReceive(mqtt_payload, &item, portMAX_DELAY) == pdPASS){
+//			ESP_LOGI(TAG, "PAYLOAD: %s", item);
+//			memset(&command_set, 0, sizeof(command_set));
+//			JSON_analyze_SUB_MQTT(item, &command_set);
+//			ESP_LOGI(TAG, "action: %s\n", (char*)command_set.action);
+//			if(strstr(command_set.action, "light-cct")) {
+//				rail_bulb_control.CCT = mParseHex(command_set.value, 6);
+//				rail_bulb_control.mode = CTT;
+//			}
+//			else if (strstr(command_set.action, "light-dim")) {
+//				rail_bulb_control.Dim = mParseHex(command_set.value, 6);
+//				rail_bulb_control.mode = CTT;
+//			}
+//			else if (strstr(command_set.action, "light-RGB")) {
+//				rail_bulb_control.R = mParseHex(command_set.value, 6) >> 16;
+//				rail_bulb_control.G = mParseHex(command_set.value, 6) >> 8 && 0xFF;
+//				rail_bulb_control.B = mParseHex(command_set.value, 6) & 0xFF;
+//				rail_bulb_control.mode = RGB;
+//			}
+//			else if (strstr(command_set.action, "on")) {
+//
+//			}
+//			else if (strstr(command_set.action, "off")) {
+//
+//			}
+//			vTaskDelay(10/portTICK_RATE_MS);
+//		}
+//	}
+//}
 
 void mqtt_app_start(char *broker, char *client_id, char *passowrd)
 {
-	mqtt_payload = xQueueCreate(20, 250*sizeof(char));
 	if (mqtt_payload == NULL) {
 		ESP_LOGE(TAG, "Failed to create mqtt_payload\n");
 	}
@@ -102,7 +122,7 @@ void mqtt_app_start(char *broker, char *client_id, char *passowrd)
 	mqtt_cfg.keepalive = 60;
 	mqtt_cfg.reconnect_timeout_ms = 1000;
 	client = esp_mqtt_client_init(&mqtt_cfg);
-	xTaskCreate(mqtt_handle, "mqtt_handle", 8192, NULL, 3, NULL);
+//	xTaskCreate(mqtt_handle, "mqtt_handle", 8192, NULL, 3, NULL);
 	esp_mqtt_client_register_event(client, ESP_EVENT_ANY_ID, mqtt_event_handler, NULL);
 	esp_mqtt_client_start(client);
 }

@@ -15,20 +15,32 @@
 #include "./WiFi/WiFi_proc.h"
 #include "./Pair/CompatibleMode/AP.h"
 #include "./heartbeat/heartbeat.h"
-#include "./Mqtt/mqtt.c"
+#include "./Mqtt/mqtt.h"
+#include "./led_control/led.h"
+#include "iot_led.h"
+#include "light_driver.h"
 #define TAG "MAIN"
+
+#define CONFIG_LIGHT_GPIO_RED				3
+#define CONFIG_LIGHT_GPIO_GREEN				4
+#define CONFIG_LIGHT_GPIO_BLUE				5
+#define CONFIG_LIGHT_GPIO_COLD     			18
+#define CONFIG_LIGHT_GPIO_WARM				19
+#define CONFIG_LIGHT_FADE_PERIOD_MS 		(1000)
+#define CONFIG_LIGHT_BLINK_PERIOD_MS		(500)
 
 __NOINIT_ATTR bool Flag_quick_pair = false;
 __NOINIT_ATTR bool Flag_compatible_pair = false;
 char brokerInfor[100];
 Device Device_Infor;
+light_control rail_bulb_control;
 char topic_msg[70] = {'\0'};
 char topic_cmd_set[70] = {'\0'};
 char topic_deviceaction[70] = {'\0'};
 char topic_heartbeat[70] = {'\0'};
 char fwVersion[50] = {'\0'};
 char svalue[200] = {'\0'};
-
+extern QueueHandle_t mqtt_payload;
 void manage_timing(void * arg)
 {
 	uint8_t restart_counter = 0;
@@ -90,15 +102,18 @@ void app_main(void)
 {
     esp_err_t err = nvs_flash_init();
     if (err == ESP_ERR_NVS_NO_FREE_PAGES || err == ESP_ERR_NVS_NEW_VERSION_FOUND) {
-        ESP_ERROR_CHECK(nvs_flash_erase());
+        nvs_flash_erase();
         err = nvs_flash_init();
     }
     ESP_ERROR_CHECK( err );
+    mqtt_payload = xQueueCreate(20, 250*sizeof(char));
 	if( esp_reset_reason() == ESP_RST_UNKNOWN || esp_reset_reason() == ESP_RST_POWERON)
 	{
 		Flag_quick_pair = false;
 		Flag_compatible_pair = false;
 	}
+
+
     init_wifi();
     if(Flag_quick_pair) {
 		xTaskCreate(timeout, "timeout", 1024, NULL, 10, NULL);
@@ -106,6 +121,8 @@ void app_main(void)
 		ESP_LOGI(TAG, "Start quick pair");
     }
     xTaskCreate(manage_timing, "manage_timing", 2048, NULL, 3, NULL);
+    xTaskCreate(init_led, "init_led", 4096 * 2, NULL, 3, NULL);
+
     mountSPIFFS();
 	get_device_infor(&Device_Infor, brokerInfor);
 	if (strlen(brokerInfor) == 0) {
@@ -139,4 +156,14 @@ void app_main(void)
 			ESP_LOGI("wifi", "free Heap:%d,%d", esp_get_free_heap_size(), heap_caps_get_free_size(MALLOC_CAP_8BIT));
 		}
 	}
+    light_driver_config_t driver_config = {
+        .gpio_red        = CONFIG_LIGHT_GPIO_RED,
+        .gpio_green      = CONFIG_LIGHT_GPIO_GREEN,
+        .gpio_blue       = CONFIG_LIGHT_GPIO_BLUE,
+        .gpio_cold       = CONFIG_LIGHT_GPIO_COLD,
+        .gpio_warm       = CONFIG_LIGHT_GPIO_WARM,
+        .fade_period_ms  = CONFIG_LIGHT_FADE_PERIOD_MS,
+        .blink_period_ms = CONFIG_LIGHT_BLINK_PERIOD_MS,
+    };
+    MDF_ERROR_ASSERT(light_driver_init(&driver_config));
 }
