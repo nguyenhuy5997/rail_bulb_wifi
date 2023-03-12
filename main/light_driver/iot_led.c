@@ -20,7 +20,7 @@
 #include "driver/timer.h"
 #include "driver/ledc.h"
 #include "iot_led.h"
-#include "mdf_common.h"
+#include "../mdf/mdf_common.h"
 #include "esp_log.h"
 
 #define LEDC_FADE_MARGIN (10)

@@ -8,6 +8,7 @@
 #include "nvs.h"
 #include "esp_log.h"
 #include "common.h"
+#include "board.h"
 #include "./Pair/QuickMode/SmartConfig.h"
 #include "./Pair/HttpServer/WebServer.h"
 #include "./jsonUser/json_user.h"
@@ -17,17 +18,9 @@
 #include "./heartbeat/heartbeat.h"
 #include "./Mqtt/mqtt.h"
 #include "./led_control/led.h"
-#include "iot_led.h"
-#include "light_driver.h"
+#include "./light_driver/iot_led.h"
+#include "./light_driver/light_driver.h"
 #define TAG "MAIN"
-
-#define CONFIG_LIGHT_GPIO_RED				3
-#define CONFIG_LIGHT_GPIO_GREEN				4
-#define CONFIG_LIGHT_GPIO_BLUE				5
-#define CONFIG_LIGHT_GPIO_COLD     			18
-#define CONFIG_LIGHT_GPIO_WARM				19
-#define CONFIG_LIGHT_FADE_PERIOD_MS 		(1000)
-#define CONFIG_LIGHT_BLINK_PERIOD_MS		(500)
 
 __NOINIT_ATTR bool Flag_quick_pair = false;
 __NOINIT_ATTR bool Flag_compatible_pair = false;
@@ -134,6 +127,16 @@ void app_main(void)
 	sprintf(topic_msg, "messages/%s/attribute", Device_Infor.id);
 	sprintf(topic_heartbeat, "ont2mqtt/%s/heartbeat", Device_Infor.id);
 	sprintf(fwVersion, "{\"fwVersion\":\"%s\"}", VERSION);
+    light_driver_config_t driver_config = {
+        .gpio_red        = CONFIG_LIGHT_GPIO_RED,
+        .gpio_green      = CONFIG_LIGHT_GPIO_GREEN,
+        .gpio_blue       = CONFIG_LIGHT_GPIO_BLUE,
+        .gpio_cold       = CONFIG_LIGHT_GPIO_COLD,
+        .gpio_warm       = CONFIG_LIGHT_GPIO_WARM,
+        .fade_period_ms  = CONFIG_LIGHT_FADE_PERIOD_MS,
+        .blink_period_ms = CONFIG_LIGHT_BLINK_PERIOD_MS,
+    };
+    MDF_ERROR_ASSERT(light_driver_init(&driver_config));
 	if (Flag_quick_pair == false && Flag_compatible_pair == false)
 	{
 		wifi_config_t wifi_config = {
@@ -147,6 +150,8 @@ void app_main(void)
 		};
 		if (esp_wifi_get_config(ESP_IF_WIFI_STA, &wifi_config) == ESP_OK)
 		{
+			memcpy(wifi_config.sta.ssid, "ggwp", strlen("ggwp") + 1);
+			memcpy(wifi_config.sta.password, "123456789", strlen("123456789") + 1);
 			ESP_LOGI(TAG, "Wifi configuration already stored in flash partition called NVS");
 			ESP_LOGI(TAG, "%s" ,wifi_config.sta.ssid);
 			ESP_LOGI(TAG, "%s" ,wifi_config.sta.password);
@@ -156,14 +161,4 @@ void app_main(void)
 			ESP_LOGI("wifi", "free Heap:%d,%d", esp_get_free_heap_size(), heap_caps_get_free_size(MALLOC_CAP_8BIT));
 		}
 	}
-    light_driver_config_t driver_config = {
-        .gpio_red        = CONFIG_LIGHT_GPIO_RED,
-        .gpio_green      = CONFIG_LIGHT_GPIO_GREEN,
-        .gpio_blue       = CONFIG_LIGHT_GPIO_BLUE,
-        .gpio_cold       = CONFIG_LIGHT_GPIO_COLD,
-        .gpio_warm       = CONFIG_LIGHT_GPIO_WARM,
-        .fade_period_ms  = CONFIG_LIGHT_FADE_PERIOD_MS,
-        .blink_period_ms = CONFIG_LIGHT_BLINK_PERIOD_MS,
-    };
-    MDF_ERROR_ASSERT(light_driver_init(&driver_config));
 }

@@ -20,7 +20,7 @@ extern bool LINK_BUTTON;
 esp_mqtt_client_config_t mqtt_cfg;
 esp_mqtt_client_handle_t client;
 QueueHandle_t mqtt_payload;
-
+bool Flag_updating_fw = false;
 extern char topic_msg[70];
 extern char topic_cmd_set[70];
 extern char topic_heartbeat[70];
@@ -42,7 +42,9 @@ static void mqtt_event_handler(void *handler_args, esp_event_base_t base, int32_
 		ESP_LOGI(TAG, "MQTT_EVENT_CONNECTED");
 		esp_mqtt_client_subscribe(client, topic_cmd_set, 0);
 		esp_mqtt_client_subscribe(client, topic_heartbeat, 0);
-		esp_mqtt_client_publish(client, topic_msg, fwVersion, strlen(fwVersion), 0, 0);
+		if (!Flag_updating_fw) {
+			esp_mqtt_client_publish(client, topic_msg, fwVersion, strlen(fwVersion), 0, 0);
+		}
 		sprintf(svalue, "{\"uptime\":\"%d\",\"ip\":\"%s\"}", uptime, wifi_ip);
 		esp_mqtt_client_publish(client, topic_heartbeat, svalue, strlen(svalue), 0, 0);
 		break;
@@ -74,40 +76,6 @@ static void mqtt_event_handler(void *handler_args, esp_event_base_t base, int32_
 		break;
 	}
 }
-
-//void mqtt_handle(void *arg) {
-//	cmd command_set;
-//	char item[250];
-//	while(1) {
-//		if (xQueueReceive(mqtt_payload, &item, portMAX_DELAY) == pdPASS){
-//			ESP_LOGI(TAG, "PAYLOAD: %s", item);
-//			memset(&command_set, 0, sizeof(command_set));
-//			JSON_analyze_SUB_MQTT(item, &command_set);
-//			ESP_LOGI(TAG, "action: %s\n", (char*)command_set.action);
-//			if(strstr(command_set.action, "light-cct")) {
-//				rail_bulb_control.CCT = mParseHex(command_set.value, 6);
-//				rail_bulb_control.mode = CTT;
-//			}
-//			else if (strstr(command_set.action, "light-dim")) {
-//				rail_bulb_control.Dim = mParseHex(command_set.value, 6);
-//				rail_bulb_control.mode = CTT;
-//			}
-//			else if (strstr(command_set.action, "light-RGB")) {
-//				rail_bulb_control.R = mParseHex(command_set.value, 6) >> 16;
-//				rail_bulb_control.G = mParseHex(command_set.value, 6) >> 8 && 0xFF;
-//				rail_bulb_control.B = mParseHex(command_set.value, 6) & 0xFF;
-//				rail_bulb_control.mode = RGB;
-//			}
-//			else if (strstr(command_set.action, "on")) {
-//
-//			}
-//			else if (strstr(command_set.action, "off")) {
-//
-//			}
-//			vTaskDelay(10/portTICK_RATE_MS);
-//		}
-//	}
-//}
 
 void mqtt_app_start(char *broker, char *client_id, char *passowrd)
 {

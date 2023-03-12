@@ -32,9 +32,31 @@ void esp_task_wdt_isr_user_handler(void)
 }
 
 void heartbeat(void *arg){
+	esp_task_wdt_init((HEARTBEAT_TIMEOUT + 15000)/1000, true);
+	printf("TWDT initialized\n");
+	 esp_task_wdt_add(NULL);
+	esp_task_wdt_status(NULL);
 	while(1){
+		esp_task_wdt_reset();
+		no_ack_hearbeat = true;
 		sprintf(svalue, "{\"uptime\":\"%d\",\"ip\":\"%s\"}", uptime, wifi_ip);
 		esp_mqtt_client_publish(client, topic_heartbeat, svalue, strlen(svalue), 0, 0);
+		//Delay 1s to determine whether there is ack from heartbeat or not
+		vTaskDelay(1000/portTICK_RATE_MS);
+		if(no_ack_hearbeat){
+			//if there is no ack from heartbeat then try to publish heartbeat again
+			ESP_LOGI("HB", "Retry send heartbeat 2nd time\r\n");
+			sprintf(svalue, "{\"uptime\":\"%d\",\"ip\":\"%s\"}", uptime, wifi_ip);
+			esp_mqtt_client_publish(client, topic_heartbeat, svalue, strlen(svalue), 0, 0);
+			//Delay 1s to determine whether there is ack from heartbeat or not
+			vTaskDelay(1000/portTICK_RATE_MS);
+			//if there is still no ack from heartbeat then refresh mqtt
+			if(no_ack_hearbeat) {
+				esp_mqtt_client_disconnect(client);
+				esp_mqtt_client_reconnect(client);
+				ESP_LOGI("HB", "Refresh MQTT cause none ack from heartbeat");
+			}
+		}
 		vTaskDelay((HEARTBEAT_TIMEOUT - 1000)/portTICK_RATE_MS);
 		uptime +=(HEARTBEAT_TIMEOUT/1000);
 	}

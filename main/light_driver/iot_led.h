@@ -20,7 +20,7 @@ extern "C" {
 #endif
 
 #include "driver/ledc.h"
-#include "mdf_common.h"
+#include "../mdf/mdf_common.h"
 
 #define HW_TIMER_GROUP (0)                                 /**< Hardware timer group */
 #define HW_TIMER_ID (0)                                    /**< Hardware timer number */

@@ -16,7 +16,7 @@
 #define __MDF_LIGHT_H__
 
 #include "iot_led.h"
-#include "mdf_common.h"
+#include "../mdf/mdf_common.h"
 
 #ifdef  __cplusplus
 extern "C" {

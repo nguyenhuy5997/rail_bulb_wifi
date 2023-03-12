@@ -12,9 +12,9 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include "mdf_common.h"
+#include "../mdf/mdf_common.h"
 #include "light_driver.h"
-#include "mdf_info_store.h"
+#include "../mdf/mdf_info_store.h"
 
 /**
  * @brief The state of the five-color light
@@ -83,7 +83,7 @@ mdf_err_t light_driver_init(light_driver_config_t *config)
              g_light_status.hue, g_light_status.saturation, g_light_status.value);
     MDF_LOGI("brightness: %d, color_temperature: %d",
              g_light_status.brightness, g_light_status.color_temperature);
-
+    light_driver_set_switch(g_light_status.on);
     return MDF_OK;
 }
 

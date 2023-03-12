@@ -100,7 +100,6 @@ esp_err_t mdf_info_save(const char *key, const void *value, size_t length)
     nvs_close(handle);
 
     MDF_ERROR_CHECK(ret != ESP_OK, ret, "Set value for given key, key: %s", key);
-
     return ESP_OK;
 }
 
