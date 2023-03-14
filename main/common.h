@@ -68,7 +68,7 @@ typedef struct _action
 }action;
 void get_device_infor(Device * _device, char * brokerInfor);
 
-uint32_t mParseHex(char *data, size_t max_len);
+uint64_t mParseHex(char *data, size_t max_len);
 
 void timeout(void *arg);
 #endif /* MAIN_COMMON_H_ */

@@ -34,8 +34,8 @@ inline int8_t hexValue(char c) {
   return -1;
 }
 
-uint32_t mParseHex(char *data, size_t max_len) {
-  uint32_t ret = 0;
+uint64_t mParseHex(char *data, size_t max_len) {
+  uint64_t ret = 0;
   for (uint8_t i = 0; i < max_len; i++) {
     int8_t v = hexValue(data[i]);
     if (v < 0) { // non hex digit, we stop parsing

@@ -98,7 +98,7 @@ void app_main(void)
         nvs_flash_erase();
         err = nvs_flash_init();
     }
-    ESP_ERROR_CHECK( err );
+//    ESP_ERROR_CHECK( err );
     mqtt_payload = xQueueCreate(20, 250*sizeof(char));
 	if( esp_reset_reason() == ESP_RST_UNKNOWN || esp_reset_reason() == ESP_RST_POWERON)
 	{
@@ -127,16 +127,7 @@ void app_main(void)
 	sprintf(topic_msg, "messages/%s/attribute", Device_Infor.id);
 	sprintf(topic_heartbeat, "ont2mqtt/%s/heartbeat", Device_Infor.id);
 	sprintf(fwVersion, "{\"fwVersion\":\"%s\"}", VERSION);
-    light_driver_config_t driver_config = {
-        .gpio_red        = CONFIG_LIGHT_GPIO_RED,
-        .gpio_green      = CONFIG_LIGHT_GPIO_GREEN,
-        .gpio_blue       = CONFIG_LIGHT_GPIO_BLUE,
-        .gpio_cold       = CONFIG_LIGHT_GPIO_COLD,
-        .gpio_warm       = CONFIG_LIGHT_GPIO_WARM,
-        .fade_period_ms  = CONFIG_LIGHT_FADE_PERIOD_MS,
-        .blink_period_ms = CONFIG_LIGHT_BLINK_PERIOD_MS,
-    };
-    MDF_ERROR_ASSERT(light_driver_init(&driver_config));
+
 	if (Flag_quick_pair == false && Flag_compatible_pair == false)
 	{
 		wifi_config_t wifi_config = {

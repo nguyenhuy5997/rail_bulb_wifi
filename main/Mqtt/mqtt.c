@@ -25,7 +25,7 @@ extern char topic_msg[70];
 extern char topic_cmd_set[70];
 extern char topic_heartbeat[70];
 extern char fwVersion[50];
-
+extern bool no_ack_hearbeat;
 
 extern char wifi_ip[30];
 extern uint32_t uptime;
@@ -63,6 +63,7 @@ static void mqtt_event_handler(void *handler_args, esp_event_base_t base, int32_
 		ESP_LOGI(TAG, "MQTT_EVENT_PUBLISHED, msg_id=%d", event->msg_id);
 		break;
 	case MQTT_EVENT_DATA:
+		no_ack_hearbeat = false;
 		if (event->data_len > 0 && event->data) {
 			event->data[event->data_len] = NULL;
 			xQueueSendFromISR(mqtt_payload, (char *) event->data, 10/portTICK_RATE_MS);

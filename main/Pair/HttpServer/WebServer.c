@@ -184,7 +184,7 @@ static esp_err_t GET_handler(httpd_req_t *req)
 	sprintf(mac, "%02x:%02x:%02x:%02x:%02x:%02x", chipid[0], chipid[1], chipid[2], chipid[3], chipid[4], chipid[5]);
 	printf("----------mac: %s\r\n", mac);
     char resp_str[513] = {0};
-    sprintf(resp_str, "{\"ipdevice\":\"%s\",\"type\":\"ble_led_rgb\",\"devicename\":\"ble_led_rgb\",\"mac\":\"%s\"}", host, mac);
+    sprintf(resp_str, "{\"ipdevice\":\"%s\",\"type\":\"ble_led_rgb\",\"devicename\":\"Bulb_Wifi_RGB\",\"mac\":\"%s\"}", host, mac);
     ESP_LOGD(TAG, "\r\n /device resp: %s\r\n", resp_str);
     httpd_resp_send(req, resp_str, HTTPD_RESP_USE_STRLEN);
 

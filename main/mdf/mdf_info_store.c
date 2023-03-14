@@ -126,7 +126,7 @@ esp_err_t __mdf_info_load(const char *key, void *value, size_t len, uint32_t typ
     MDF_PARAM_CHECK(*length > 0);
 
     /**< Initialize the default NVS partition */
-//    mdf_info_init();
+    mdf_info_init();
 
     /**< Open non-volatile storage with a given namespace from the default NVS partition */
     ret = nvs_open(MDF_SPACE_NAME, NVS_READWRITE, &handle);

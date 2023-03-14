@@ -65,6 +65,16 @@ typedef struct {
 mdf_err_t light_driver_init(light_driver_config_t *config);
 
 /**
+ * @brief  Light initialize and breath in paring mode
+ *
+ * @param  config [description]
+ *
+ * @return
+ *      - MDF_OK
+ *      - MDF_ERR_INVALID_ARG
+ */
+mdf_err_t light_driver_init_in_pairing_mode(light_driver_config_t *config);
+/**
  * @brief  Light deinitialize
  *
  * @return

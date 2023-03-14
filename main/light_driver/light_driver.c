@@ -87,6 +87,25 @@ mdf_err_t light_driver_init(light_driver_config_t *config)
     return MDF_OK;
 }
 
+mdf_err_t light_driver_init_in_pairing_mode(light_driver_config_t *config)
+{
+    MDF_PARAM_CHECK(config);
+
+    iot_led_init(LEDC_TIMER_0, LEDC_LOW_SPEED_MODE, 1000);
+
+    g_light_status.fade_period_ms  = config->fade_period_ms;
+    g_light_status.blink_period_ms = config->blink_period_ms;
+
+    iot_led_regist_channel(CHANNEL_ID_RED, config->gpio_red);
+    iot_led_regist_channel(CHANNEL_ID_GREEN, config->gpio_green);
+    iot_led_regist_channel(CHANNEL_ID_BLUE, config->gpio_blue);
+    iot_led_regist_channel(CHANNEL_ID_WARM, config->gpio_warm);
+    iot_led_regist_channel(CHANNEL_ID_COLD, config->gpio_cold);
+
+    light_driver_breath_start(255,255,255);
+    return MDF_OK;
+}
+
 mdf_err_t light_driver_deinit()
 {
     mdf_err_t ret = MDF_OK;
